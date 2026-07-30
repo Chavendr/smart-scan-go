@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">🛒 Smart Scan & Go</a>
+        <a href="/cart" class="cart-icon">🛍️ Cart</a>
+    </div>
+
+    <div class="page-content">
+        <h1>Our Store</h1>
+        <p style="color:#777; margin-top:-10px;">Scan QR codes below to simulate shopping</p>
+
+        {% for category, items in categories.items() %}
+            <h2 style="margin-top:24px; font-size:18px; color:#2c3e50; border-bottom:2px solid #ff7e2e; display:inline-block; padding-bottom:4px;">
+                {{ category }}
+            </h2>
+
+            {% for code, info in items %}
+            <div class="product-card">
+                <img src="{{ url_for('static', filename='images/' + info.image) }}" width="70" height="70" style="object-fit:cover;">
+                <div class="info" style="flex:1; margin-left:14px;">
+                    <h3>{{ info.name }}</h3>
+                    <p>₹{{ info.price }}</p>
+                </div>
+                <img src="{{ url_for('static', filename='product_qr/' + code + '.png') }}" width="70" class="qr-clickable" onclick="openQR(this.src)">
+            </div>
+            {% endfor %}
+        {% endfor %}
+
+        <a href="/scan" class="btn" style="margin-top:20px;">📷 Start Scanning</a>
+    </div>
+<div class="qr-overlay" id="qrOverlay" onclick="closeQR()">
+    <img id="qrOverlayImg" src="">
+    <p>Tap anywhere to close</p>
+</div>
+
+<script>
+function openQR(src) {
+    document.getElementById("qrOverlayImg").src = src;
+    document.getElementById("qrOverlay").classList.add("active");
+}
+function closeQR() {
+    document.getElementById("qrOverlay").classList.remove("active");
+}
+</script>
+</body>
+</html>

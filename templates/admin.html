@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - All Orders</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">🛒 Smart Scan & Go</a>
+        <a href="/" class="cart-icon">🏠 Home</a>
+    </div>
+
+    <div class="page-content">
+        <h1>📊 Admin — All Orders</h1>
+
+        {% if order_list %}
+            <table>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Verified?</th>
+                </tr>
+                {% for order in order_list %}
+                <tr>
+                    <td>{{ order.order_id }}</td>
+                    <td>{{ order.item_list }}</td>
+                    <td>₹{{ order.total }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>{% if order.used %} ✅ {% else %} ⏳ {% endif %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No orders yet.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>

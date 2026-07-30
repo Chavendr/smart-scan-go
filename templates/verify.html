@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exit Verification</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">🛒 Smart Scan & Go</a>
+        <a href="/" class="cart-icon">🏠 Home</a>
+    </div>
+
+    <div class="page-content">
+        <a href="/" class="back-btn">⬅ Back to Home</a>
+<h1>🔐 Exit Gate — Scan Receipt</h1>
+        <div id="reader" style="width: 100%;"></div>
+        <p id="result" style="font-size: 16px; font-weight: 700; margin-top: 16px;">Waiting to scan...</p>
+    </div>
+
+    <script>
+        let checking = false;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (checking) return;
+            checking = true;
+
+            document.getElementById("result").innerText = "Checking...";
+
+            fetch("/check_order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: decodedText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = data.message;
+                if (!data.valid) {
+                    document.getElementById("result").style.color = "#e74c3c";
+                } else if (data.flagged) {
+                    document.getElementById("result").style.color = "#e67e22";
+                } else {
+                    document.getElementById("result").style.color = "#27ae60";
+                }
+                setTimeout(() => { checking = false; }, 2000);
+            });
+        }
+
+        var html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", { fps: 10, qrbox: 250 }
+        );
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>

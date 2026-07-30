@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Receipt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">🛒 Smart Scan & Go</a>
+        <a href="/cart" class="cart-icon">🛍️ Cart</a>
+    </div>
+
+    <div class="page-content">
+        <div class="receipt-card">
+            <p class="status-success">✅ Payment Successful</p>
+<p style="color:#555; margin-top:-8px;">Thank you, <strong>{{ customer_name }}</strong>!</p>
+            <p>Order ID: <strong>{{ order_id }}</strong></p>
+
+            <div style="text-align:left; margin-top:16px; border-top:1px dashed #ccc; padding-top:12px;">
+                {% for item in bill_items %}
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:14px;">
+                    <span>{{ item.name }} x{{ item.qty }}</span>
+                    <span>₹{{ item.subtotal }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="border-top:1px dashed #ccc; margin-top:10px; padding-top:10px; display:flex; justify-content:space-between; font-weight:bold;">
+                <span>Total</span>
+                <span>₹{{ total }}</span>
+            </div>
+
+            <p style="margin-top:14px; color:#777; font-size:13px;">Thank you for shopping with us! 🛍️</p>
+
+            <h3 style="margin-top:20px;">Show this QR at the exit</h3>
+            <img src="{{ url_for('static', filename='product_qr/' + qr_filename) }}" width="200" class="qr-clickable" onclick="openQR(this.src)">
+        </div>
+
+        <a href="/" class="btn secondary" style="margin-top:20px;">🏠 Back to Home</a>
+    </div>
+
+    <div class="qr-overlay" id="qrOverlay" onclick="closeQR()">
+        <img id="qrOverlayImg" src="">
+        <p>Tap anywhere to close</p>
+    </div>
+
+    <script>
+    function openQR(src) {
+        document.getElementById("qrOverlayImg").src = src;
+        document.getElementById("qrOverlay").classList.add("active");
+    }
+    function closeQR() {
+        document.getElementById("qrOverlay").classList.remove("active");
+    }
+    </script>
+
+</body>
+</html>

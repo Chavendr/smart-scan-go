@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Cart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">🛒 Smart Scan & Go</a>
+        <a href="/cart" class="cart-icon">🛍️ Cart</a>
+    </div>
+
+    <div class="page-content">
+        <a href="/scan" class="back-btn">⬅ Back to Scan</a>
+        <h1>🛍️ Your Cart</h1>
+
+        {% if cart_items %}
+            {% for item in cart_items %}
+            <div class="cart-item">
+                <span>{{ item.name }}</span>
+                <span>₹{{ item.price }}</span>
+            </div>
+            {% endfor %}
+
+            <div class="total-box">Total: ₹{{ total }}</div>
+
+            <a href="/payment" class="btn green">💳 Proceed to Pay</a>
+            <a href="/scan" class="btn secondary">📷 Scan More Items</a>
+        {% else %}
+            <div class="empty-state">
+                <div class="icon">🛒</div>
+                <h3>Your cart is empty</h3>
+                <p>Start scanning products to add them here</p>
+                <a href="/scan" class="btn">📷 Go Scan Something</a>
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

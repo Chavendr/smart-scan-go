@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">Smart Scan & Go</a>
+        <a href="/cart" class="cart-icon">Cart</a>
+    </div>
+
+    <div class="page-content">
+        <h1>Payment</h1>
+        <div class="total-box">Amount to Pay: ₹{{ total }}</div>
+
+<input type="text" id="customerName" placeholder="Enter your name" style="width:100%; padding:12px 14px; border:1.5px solid #ddd; border-radius:10px; font-size:15px; margin-bottom:14px;">
+
+        <button class="btn green" id="payBtn" onclick="payNow()">Pay Now</button>
+        <div class="spinner" id="spinner"></div>
+        <p id="status" style="text-align:center; font-weight:600; margin-top:14px;"></p>
+    </div>
+
+    <script>
+        function payNow() {
+            document.getElementById("payBtn").style.display = "none";
+            document.getElementById("spinner").classList.add("active");
+            document.getElementById("status").innerText = "Processing your payment...";
+
+           let name = document.getElementById("customerName").value || "Customer";
+
+fetch("/process_payment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: name })
+})
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("spinner").classList.remove("active");
+                    document.getElementById("status").innerHTML = "<span class='checkmark-pop' style='color:#27ae60; font-size:20px;'>✔ Payment Confirmed</span>";
+                    setTimeout(() => {
+                        window.location.href = "/receipt";
+                    }, 900);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

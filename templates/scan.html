@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan Product</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">🛒 Smart Scan & Go</a>
+        <a href="/cart" class="cart-icon">🛍️ Cart</a>
+    </div>
+
+    <div class="page-content">
+        <h1>📷 Scan a Product</h1>
+        <div id="reader" style="width: 100%;"></div>
+        <p id="result" style="font-size: 16px; font-weight: 600; margin-top: 16px;">Point camera at a QR code...</p>
+
+        <button class="btn green" onclick="scanNext()">🔄 Scan Next Item</button>
+        <a href="/cart" class="btn">🛍️ Go to Cart</a>
+    </div>
+
+    <script>
+        let isScanning = true;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (!isScanning) return;
+            isScanning = false;
+
+            document.getElementById("result").innerText = "Scanned: " + decodedText;
+
+            fetch("/add_to_cart", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: decodedText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = "✅ " + data.message;
+            });
+        }
+
+        function scanNext() {
+            isScanning = true;
+            document.getElementById("result").innerText = "Point camera at a QR code...";
+        }
+
+        var html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", { fps: 10, qrbox: 250 }
+        );
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>

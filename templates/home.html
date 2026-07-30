@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Scan and Go</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">Smart Scan & Go</a>
+        <a href="/cart" class="cart-icon">Cart</a>
+    </div>
+
+    <div class="hero">
+        <div class="tag">FreshMart Express</div>
+        <h1>Scan. Pay. Walk out.</h1>
+        <p>Skip the checkout line — shop at your own pace.</p>
+    </div>
+
+    <div class="page-content">
+        <div class="menu-list">
+            <a href="/products" class="menu-item">
+                <span class="icon-box" style="background:#eef2ff; color:#4f46e5;">📋</span>
+                Browse Products
+                <span class="arrow">›</span>
+            </a>
+            <a href="/scan" class="menu-item">
+                <span class="icon-box" style="background:#fff3ea; color:#ff7e2e;">📷</span>
+                Start Scanning
+                <span class="arrow">›</span>
+            </a>
+            <a href="/cart" class="menu-item">
+                <span class="icon-box" style="background:#e9f9ef; color:#27ae60;">🛍️</span>
+                My Cart
+                <span class="arrow">›</span>
+            </a>
+            <a href="/verify" class="menu-item">
+                <span class="icon-box" style="background:#fdeeee; color:#e74c3c;">🔐</span>
+                Staff: Exit Verification
+                <span class="arrow">›</span>
+            </a>
+            <a href="/admin" class="menu-item">
+                <span class="icon-box" style="background:#f0f0f0; color:#555;">📊</span>
+                Admin Dashboard
+                <span class="arrow">›</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">SMART SCAN & GO · v1.0 · 2026</div>
+
+</body>
+</html>
