@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exit Verification</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
@@ -10,15 +9,21 @@
 <body>
 
     <div class="navbar">
-        <a href="/" class="logo">🛒 Smart Scan & Go</a>
-        <a href="/" class="cart-icon">🏠 Home</a>
+        <a href="/" class="logo">Smart Scan & Go</a>
+        <a href="/" class="cart-icon">Home</a>
     </div>
 
     <div class="page-content">
         <a href="/" class="back-btn">⬅ Back to Home</a>
-<h1>🔐 Exit Gate — Scan Receipt</h1>
+        <h1>🔐 Exit Gate — Scan Receipt</h1>
         <div id="reader" style="width: 100%;"></div>
         <p id="result" style="font-size: 16px; font-weight: 700; margin-top: 16px;">Waiting to scan...</p>
+
+        <div id="itemsBox" style="display:none; background:white; border-radius:12px; padding:16px; margin-top:10px; text-align:left; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <p style="font-weight:700; margin:0 0 8px 0;">Order: <span id="orderIdText"></span></p>
+            <ul id="itemsList" style="margin:0; padding-left:18px; font-size:14px;"></ul>
+            <p style="font-weight:700; margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">Total: ₹<span id="totalText"></span></p>
+        </div>
     </div>
 
     <script>
@@ -38,13 +43,27 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById("result").innerText = data.message;
+
                 if (!data.valid) {
                     document.getElementById("result").style.color = "#e74c3c";
-                } else if (data.flagged) {
-                    document.getElementById("result").style.color = "#e67e22";
+                    document.getElementById("itemsBox").style.display = "none";
                 } else {
-                    document.getElementById("result").style.color = "#27ae60";
+                    document.getElementById("result").style.color = data.flagged ? "#e67e22" : "#27ae60";
+
+                    document.getElementById("orderIdText").innerText = data.order_id;
+                    document.getElementById("totalText").innerText = data.total;
+
+                    let list = document.getElementById("itemsList");
+                    list.innerHTML = "";
+                    data.items.forEach(function(item) {
+                        let li = document.createElement("li");
+                        li.innerText = item;
+                        list.appendChild(li);
+                    });
+
+                    document.getElementById("itemsBox").style.display = "block";
                 }
+
                 setTimeout(() => { checking = false; }, 2000);
             });
         }

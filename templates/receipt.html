@@ -36,6 +36,15 @@
             <p style="margin-top:14px; color:#777; font-size:13px;">Thank you for shopping with us! 🛍️</p>
 
             <h3 style="margin-top:20px;">Show this QR at the exit</h3>
+
+<div style="background:#fff3cd; border:1.5px solid #ffc107; border-radius:10px; padding:12px 14px; margin-top:12px; text-align:left;">
+    <p style="margin:0; font-size:13px; color:#856404; font-weight:600;">
+        ⚠️ Important: Take a screenshot of this QR code now.
+    </p>
+    <p style="margin:6px 0 0 0; font-size:12.5px; color:#856404;">
+        You will need to show this at the exit gate. If you navigate away from this page, you may not be able to return to it.
+    </p>
+</div>s
             <img src="{{ url_for('static', filename='product_qr/' + qr_filename) }}" width="200" class="qr-clickable" onclick="openQR(this.src)">
         </div>
 

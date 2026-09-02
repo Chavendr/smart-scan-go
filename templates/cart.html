@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Cart</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 </head>
 <body>
 
     <div class="navbar">
-        <a href="/" class="logo">🛒 Smart Scan & Go</a>
-        <a href="/cart" class="cart-icon">🛍️ Cart</a>
+        <a href="/" class="logo">Smart Scan & Go</a>
+        <a href="/cart" class="cart-icon">Cart</a>
     </div>
 
     <div class="page-content">
@@ -21,8 +19,8 @@
         {% if cart_items %}
             {% for item in cart_items %}
             <div class="cart-item">
-                <span>{{ item.name }}</span>
-                <span>₹{{ item.price }}</span>
+                <span>{{ item.name }} — ₹{{ item.price }}</span>
+                <a href="/remove_from_cart/{{ loop.index0 }}" style="color:#e74c3c; text-decoration:none; font-weight:600; font-size:13px; border:1px solid #e74c3c; padding:5px 10px; border-radius:8px;">✕ Remove</a>
             </div>
             {% endfor %}
 

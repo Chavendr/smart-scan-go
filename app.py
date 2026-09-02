@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import uuid
 import hashlib
 import random
@@ -172,13 +172,22 @@ def check_order():
     if order["status"] != "PAID":
         return jsonify({"valid": False, "message": "❌ Order not paid"})
 
-    database.mark_order_used(order_id)
+        database.mark_order_used(order_id)
+
+    item_counts = {}
+    for code in order["items"]:
+        if code in products:
+            name = products[code]["name"]
+            if name not in item_counts:
+                item_counts[name] = 0
+            item_counts[name] += 1
+
+    item_list = [f"{name} x{qty}" for name, qty in item_counts.items()]
 
     if random.random() < 0.2:
-        return jsonify({"valid": True, "flagged": True, "message": f"⚠️ Verified but FLAGGED for random check — Order {order_id} — ₹{order['total']}. Please show bag contents to staff."})
+        return jsonify({"valid": True, "flagged": True, "order_id": order_id, "total": order["total"], "items": item_list, "message": "⚠️ FLAGGED for random check — please show bag contents to staff."})
 
-    return jsonify({"valid": True, "flagged": False, "message": f"✅ Verified! Order {order_id} — ₹{order['total']} — Allow Exit"})
-
+    return jsonify({"valid": True, "flagged": False, "order_id": order_id, "total": order["total"], "items": item_list, "message": "✅ Verified — Allow Exit"})
 @app.route("/admin")
 def admin_page():
     all_orders = database.get_all_orders()
@@ -193,6 +202,14 @@ def admin_page():
             "used": order["used"]
         })
     return render_template("admin.html", order_list=order_list)
+@app.route("/remove_from_cart/<int:index>")
+def remove_from_cart(index):
+    cart = session.get("cart", [])
+    if 0 <= index < len(cart):
+        cart.pop(index)
+        session["cart"] = cart
+        session.modified = True
+    return redirect(url_for("view_cart"))
 
 if __name__ == "__main__":
     app.run(debug=True)
