@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import hashlib
 import random
@@ -26,15 +27,31 @@ products = {
 
 SECRET_KEY = "smart_scan_secret_2026"
 
-# Generate QR codes for all products automatically on startup (only if missing)
 if not os.path.exists("static/product_qr"):
     os.makedirs("static/product_qr")
 
 for code in products:
     qr_path = f"static/product_qr/{code}.png"
     if not os.path.exists(qr_path):
-        img = qrcode.make(code)
+        qr = qrcode.QRCode(box_size=10, border=4)
+        qr.add_data(code)
+        qr.make()
+        img = qr.make_image(fill_color="black", back_color="white")
         img.save(qr_path)
+
+# ---------------- Login check (runs before every page) ----------------
+
+@app.before_request
+def require_login():
+    open_pages = ["home", "login", "signup", "logout", "static"]
+    if request.endpoint in open_pages:
+        return None
+    if not session.get("user_id"):
+        if request.method == "POST":
+            return jsonify({"success": False, "valid": False, "message": "Please log in first."}), 401
+        return redirect(url_for("login"))
+
+# ---------------- Pages ----------------
 
 @app.route("/")
 def home():
@@ -49,6 +66,55 @@ def show_products():
             categories[cat] = []
         categories[cat].append((code, info))
     return render_template("products.html", categories=categories)
+
+# ---------------- Login / Signup / Logout ----------------
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+
+        if not name or not email or len(password) < 6:
+            return render_template("signup.html", error="Please fill all fields. Password must be at least 6 characters.")
+
+        password_hash = generate_password_hash(password)
+        created = database.add_user(name, email, password_hash)
+
+        if not created:
+            return render_template("signup.html", error="This email is already registered. Please log in.")
+
+        user = database.get_user_by_email(email)
+        session["user_id"] = user["id"]
+        session["user_name"] = user["name"]
+        return redirect(url_for("home"))
+
+    return render_template("signup.html", error=None)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+
+        user = database.get_user_by_email(email)
+
+        if user and check_password_hash(user["password_hash"], password):
+            session["user_id"] = user["id"]
+            session["user_name"] = user["name"]
+            return redirect(url_for("home"))
+
+        return render_template("login.html", error="Wrong email or password.")
+
+    return render_template("login.html", error=None)
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+# ---------------- Shopping ----------------
 
 @app.route("/scan")
 def scan_page():
@@ -83,133 +149,11 @@ def view_cart():
 
     return render_template("cart.html", cart_items=cart_items, total=total)
 
-@app.route("/payment")
-def payment_page():
-    cart_codes = session.get("cart", [])
-    total = sum(products[code]["price"] for code in cart_codes)
-    return render_template("payment.html", total=total)
-
-@app.route("/process_payment", methods=["POST"])
-def process_payment():
-    data = request.get_json() or {}
-    customer_name = data.get("name", "Customer")
-
-    cart_codes = session.get("cart", [])
-    total = sum(products[code]["price"] for code in cart_codes)
-
-    order_id = str(uuid.uuid4())[:8]
-    signature = hashlib.sha256(f"{order_id}{SECRET_KEY}".encode()).hexdigest()[:12]
-
-    database.save_order(order_id, cart_codes, total, "PAID", signature, False)
-
-    session["cart"] = []
-    session["last_order"] = order_id
-    session["customer_name"] = customer_name
-
-    return jsonify({"success": True, "order_id": order_id})
-
-@app.route("/receipt")
-def receipt_page():
-    order_id = session.get("last_order")
-    order = database.get_order(order_id) if order_id else None
-
-    if not order:
-        return "No recent order found. Please shop first."
-
-    qr_data = f"{order_id}|{order['signature']}"
-    qr = qrcode.QRCode(box_size=10, border=4)
-    qr.add_data(qr_data)
-    qr.make()
-    img = qr.make_image(fill_color="black", back_color="white")
-    img.save(f"static/product_qr/receipt_{order_id}.png")
-
-    item_counts = {}
-    for code in order["items"]:
-        if code in products:
-            name = products[code]["name"]
-            price = products[code]["price"]
-            if name not in item_counts:
-                item_counts[name] = {"qty": 0, "price": price}
-            item_counts[name]["qty"] += 1
-
-    bill_items = []
-    for name, data in item_counts.items():
-        bill_items.append({
-            "name": name,
-            "qty": data["qty"],
-            "price": data["price"],
-            "subtotal": data["qty"] * data["price"]
-        })
-
-    customer_name = session.get("customer_name", "Customer")
-
-    return render_template("receipt.html", order_id=order_id, total=order["total"], qr_filename=f"receipt_{order_id}.png", bill_items=bill_items, customer_name=customer_name)
-@app.route("/verify")
-def verify_page():
-    return render_template("verify.html")
-
-@app.route("/check_order", methods=["POST"])
-def check_order():
-    data = request.get_json()
-    scanned_text = data.get("code")
-
-    try:
-        order_id, signature = scanned_text.split("|")
-    except:
-        return jsonify({"valid": False, "message": "Invalid QR format"})
-
-    order = database.get_order(order_id)
-
-    if not order:
-        return jsonify({"valid": False, "message": "❌ Order not found"})
-
-    if order["signature"] != signature:
-        return jsonify({"valid": False, "message": "❌ Invalid / tampered QR code"})
-
-    if order["used"]:
-        return jsonify({"valid": False, "message": "❌ This QR was already used!"})
-
-    if order["status"] != "PAID":
-        return jsonify({"valid": False, "message": "❌ Order not paid"})
-
-        database.mark_order_used(order_id)
-
-    item_counts = {}
-    for code in order["items"]:
-        if code in products:
-            name = products[code]["name"]
-            if name not in item_counts:
-                item_counts[name] = 0
-            item_counts[name] += 1
-
-    item_list = [f"{name} x{qty}" for name, qty in item_counts.items()]
-
-    if random.random() < 0.2:
-        return jsonify({"valid": True, "flagged": True, "order_id": order_id, "total": order["total"], "items": item_list, "message": "⚠️ FLAGGED for random check — please show bag contents to staff."})
-
-    return jsonify({"valid": True, "flagged": False, "order_id": order_id, "total": order["total"], "items": item_list, "message": "✅ Verified — Allow Exit"})
-@app.route("/admin")
-def admin_page():
-    all_orders = database.get_all_orders()
-    order_list = []
-    for order in all_orders:
-        item_names = [products[code]["name"] for code in order["items"] if code in products]
-        order_list.append({
-            "order_id": order["order_id"],
-            "item_list": ", ".join(item_names),
-            "total": order["total"],
-            "status": order["status"],
-            "used": order["used"]
-        })
-    return render_template("admin.html", order_list=order_list)
 @app.route("/remove_from_cart/<int:index>")
 def remove_from_cart(index):
     cart = session.get("cart", [])
     if 0 <= index < len(cart):
         cart.pop(index)
-        session["cart"] = cart
-        session.modified = True
-    return redirect(url_for("view_cart"))
 
 if __name__ == "__main__":
     app.run(debug=True)

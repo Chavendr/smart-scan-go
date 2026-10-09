@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/" class="logo">Smart Scan & Go</a>
+    </div>
+
+    <div class="hero">
+        <div class="tag">FreshMart Express</div>
+        <h1>Create your account</h1>
+        <p>It takes less than a minute.</p>
+    </div>
+
+    <div class="page-content">
+
+        {% if error %}
+        <div style="background:#fdeeee; border:1.5px solid #e74c3c; color:#c0392b; border-radius:10px; padding:12px 14px; margin-bottom:14px; font-size:14px; font-weight:600;">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            <input type="text" name="name" placeholder="Your name" required
+                   style="width:100%; padding:13px 14px; border:1.5px solid #ddd; border-radius:10px; font-size:15px; margin-bottom:12px;">
+
+            <input type="email" name="email" placeholder="Email" required
+                   style="width:100%; padding:13px 14px; border:1.5px solid #ddd; border-radius:10px; font-size:15px; margin-bottom:12px;">
+
+            <input type="password" name="password" placeholder="Password (min 6 characters)" required
+                   style="width:100%; padding:13px 14px; border:1.5px solid #ddd; border-radius:10px; font-size:15px; margin-bottom:12px;">
+
+            <button type="submit" class="btn green">Sign Up</button>
+        </form>
+
+        <p style="text-align:center; color:#777; font-size:14px; margin-top:18px;">
+            Already have an account? <a href="/login" style="color:#ff7e2e; font-weight:700; text-decoration:none;">Log in</a>
+        </p>
+    </div>
+
+    <div class="footer">SMART SCAN & GO · v1.0 · 2026</div>
+
+</body>
+</html>

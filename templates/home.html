@@ -10,16 +10,27 @@
 
     <div class="navbar">
         <a href="/" class="logo">Smart Scan & Go</a>
-        <a href="/cart" class="cart-icon">Cart</a>
+        {% if session.get('user_name') %}
+            <a href="/logout" class="cart-icon">Logout</a>
+        {% else %}
+            <a href="/login" class="cart-icon">Login</a>
+        {% endif %}
     </div>
 
     <div class="hero">
         <div class="tag">FreshMart Express</div>
-        <h1>Scan. Pay. Walk out.</h1>
-        <p>Skip the checkout line — shop at your own pace.</p>
+        {% if session.get('user_name') %}
+            <h1>Hi, {{ session.get('user_name') }}!</h1>
+            <p>Ready to shop? Scan, pay and walk out.</p>
+        {% else %}
+            <h1>Scan. Pay. Walk out.</h1>
+            <p>Please log in to start shopping.</p>
+        {% endif %}
     </div>
 
     <div class="page-content">
+
+        {% if session.get('user_name') %}
         <div class="menu-list">
             <a href="/products" class="menu-item">
                 <span class="icon-box" style="background:#eef2ff; color:#4f46e5;">📋</span>
@@ -47,6 +58,11 @@
                 <span class="arrow">›</span>
             </a>
         </div>
+        {% else %}
+            <a href="/login" class="btn">Log In</a>
+            <a href="/signup" class="btn green">Create an Account</a>
+        {% endif %}
+
     </div>
 
     <div class="footer">SMART SCAN & GO · v1.0 · 2026</div>
