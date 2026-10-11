@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Admin Login{% endblock %}
+
+{% block content %}
+<div class="container page">
+    <div class="pay-wrap">
+        <div class="panel" style="text-align:center; padding:34px 28px;">
+            <div class="trust-ico" style="margin:0 auto 16px; width:60px; height:60px; border-radius:18px;">{{ icon('lock', 28) }}</div>
+            <h1 style="font-size:25px; font-weight:800; letter-spacing:-.4px;">Admin access</h1>
+            <p style="color:var(--muted); margin:6px 0 22px; font-size:14.5px;">Enter the admin password to open the dashboard.</p>
+
+            {% if error %}<div class="alert alert-error" style="text-align:left;">{{ error }}</div>{% endif %}
+
+            <form method="POST" action="{{ request.full_path.rstrip('?') }}" style="text-align:left;">
+                <div class="field">
+                    <label>Admin password</label>
+                    <input type="password" name="password" placeholder="Enter admin password" required autofocus>
+                </div>
+                <button type="submit" class="btn btn-dark btn-block btn-lg">{{ icon('shield', 18) }} Unlock Admin</button>
+            </form>
+            <a href="/" class="link-more" style="margin-top:18px; justify-content:center;">{{ icon('arrow-left', 15) }} Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,57 +1,72 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Product</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-    <script src="https://unpkg.com/html5-qrcode"></script>
-</head>
-<body>
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Scan &amp; Go{% endblock %}
 
-    <div class="navbar">
-        <a href="/" class="logo">🛒 Smart Scan & Go</a>
-        <a href="/cart" class="cart-icon">🛍️ Cart</a>
+{% block head %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container page">
+    <div class="crumbs"><a href="/">Home</a> / <span>Scan &amp; Go</span></div>
+    <div class="page-title">
+        <div>
+            <h1>Scan a product</h1>
+            <p>Point your camera at the QR code on the item</p>
+        </div>
+        <a href="/cart" class="btn btn-green">{{ icon('cart', 18) }} Go to Cart</a>
     </div>
 
-    <div class="page-content">
-        <h1>📷 Scan a Product</h1>
-        <div id="reader" style="width: 100%;"></div>
-        <p id="result" style="font-size: 16px; font-weight: 600; margin-top: 16px;">Point camera at a QR code...</p>
+    <div class="scan-grid">
+        <div class="panel">
+            <div id="reader" style="width: 100%;"></div>
+            <div class="scan-result" id="result">Point camera at a QR code...</div>
+            <button class="btn btn-dark btn-block" style="margin-top:14px;" onclick="scanNext()">{{ icon('zap', 16) }} Scan Next Item</button>
+        </div>
 
-        <button class="btn green" onclick="scanNext()">🔄 Scan Next Item</button>
-        <a href="/cart" class="btn">🛍️ Go to Cart</a>
+        <div class="panel">
+            <h3>How to scan</h3>
+            <ul class="tips">
+                <li><span class="n">1</span><div>Press <b>Start Scanning</b> and allow camera access.</div></li>
+                <li><span class="n">2</span><div>Hold the product QR code inside the frame until it says <b>Added</b>.</div></li>
+                <li><span class="n">3</span><div>Press <b>Scan Next Item</b> before scanning the next product.</div></li>
+                <li><span class="n">4</span><div>Open <b>Go to Cart</b> to review, remove items and pay.</div></li>
+            </ul>
+            <a href="/products" class="btn btn-outline btn-block" style="margin-top:20px;">{{ icon('qr', 16) }} Open demo product QR codes</a>
+        </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        let isScanning = true;
+{% block scripts %}
+<script>
+    let isScanning = true;
 
-        function onScanSuccess(decodedText, decodedResult) {
-            if (!isScanning) return;
-            isScanning = false;
+    function onScanSuccess(decodedText, decodedResult) {
+        if (!isScanning) return;
+        isScanning = false;
 
-            document.getElementById("result").innerText = "Scanned: " + decodedText;
+        document.getElementById("result").innerText = "Scanned: " + decodedText;
 
-            fetch("/add_to_cart", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: decodedText })
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("result").innerText = "✅ " + data.message;
-            });
-        }
+        fetch("/add_to_cart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: decodedText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("result").innerText = "✅ " + data.message;
+        });
+    }
 
-        function scanNext() {
-            isScanning = true;
-            document.getElementById("result").innerText = "Point camera at a QR code...";
-        }
+    function scanNext() {
+        isScanning = true;
+        document.getElementById("result").innerText = "Point camera at a QR code...";
+    }
 
-        var html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", { fps: 10, qrbox: 250 }
-        );
-        html5QrcodeScanner.render(onScanSuccess);
-    </script>
-</body>
-</html>
+    var html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", { fps: 10, qrbox: 250 }
+    );
+    html5QrcodeScanner.render(onScanSuccess);
+</script>
+{% endblock %}

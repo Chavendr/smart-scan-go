@@ -1,45 +1,56 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - All Orders</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Admin Dashboard{% endblock %}
 
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-</head>
-<body>
-
-    <div class="navbar">
-        <a href="/" class="logo">🛒 Smart Scan & Go</a>
-        <a href="/" class="cart-icon">🏠 Home</a>
+{% block content %}
+<div class="container page">
+    <div class="crumbs"><a href="/">Home</a> / <span>Admin Dashboard</span></div>
+    <div class="page-title">
+        <div>
+            <h1>Admin dashboard</h1>
+            <p>Every order, with payment and exit verification status</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="/verify" class="btn btn-dark">{{ icon('shield', 16) }} Exit Verification</a>
+            <a href="/admin_logout" class="btn btn-outline">{{ icon('lock', 16) }} Lock Admin</a>
+        </div>
     </div>
 
-    <div class="page-content">
-        <h1>📊 Admin — All Orders</h1>
-
-        {% if order_list %}
-            <table>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Items</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Verified?</th>
-                </tr>
-                {% for order in order_list %}
-                <tr>
-                    <td>{{ order.order_id }}</td>
-                    <td>{{ order.item_list }}</td>
-                    <td>₹{{ order.total }}</td>
-                    <td>{{ order.status }}</td>
-                    <td>{% if order.used %} ✅ {% else %} ⏳ {% endif %}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        {% else %}
-            <p>No orders yet.</p>
-        {% endif %}
+    {% set verified = order_list|selectattr('used')|list|length %}
+    <div class="stats">
+        <div class="stat"><span>Total orders</span><b>{{ order_list|length }}</b></div>
+        <div class="stat"><span>Revenue</span><b>₹{{ order_list|sum(attribute='total') }}</b></div>
+        <div class="stat"><span>Verified at exit</span><b>{{ verified }}</b></div>
+        <div class="stat"><span>Pending exit</span><b>{{ order_list|length - verified }}</b></div>
     </div>
 
-</body>
-</html>
+    {% if order_list %}
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th>Order ID</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Exit</th>
+            </tr>
+            {% for order in order_list|reverse %}
+            <tr>
+                <td><b>{{ order.order_id }}</b></td>
+                <td>{{ order.item_list or '—' }}</td>
+                <td>₹{{ order.total }}</td>
+                <td><span class="pill pill-green">{{ order.status }}</span></td>
+                <td>{% if order.used %}<span class="pill pill-green">Verified</span>{% else %}<span class="pill pill-amber">Pending</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <div class="panel empty">
+        <div class="ico">{{ icon('chart', 42) }}</div>
+        <h3>No orders yet</h3>
+        <p>Orders will appear here as soon as customers pay.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

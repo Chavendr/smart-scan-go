@@ -1,0 +1,137 @@
+{% from "_icons.html" import icon %}
+{% set cart_n = (session.get('cart') or [])|length %}
+{% set me = session.get('user_name') %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Home{% endblock %} | Smart Scan &amp; Go Shopping System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='store.css') }}?v=exit5">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    <div class="topbar">
+        <b>Scan. Pay. Walk out.</b> &nbsp;·&nbsp; No queues, no waiting &nbsp;·&nbsp; Secure QR receipt on every order
+    </div>
+
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="/" class="logo">
+                <span class="logo-mark">{{ icon('cart', 22) }}</span>
+                <span class="logo-text"><b>Scan &amp; Go</b><small>Shopping System</small></span>
+            </a>
+
+            <form class="search" action="/products" method="get">
+                {{ icon('search', 18) }}
+                <input type="text" name="q" id="siteSearch" placeholder="Search for products, e.g. chips, pen, juice" autocomplete="off">
+            </form>
+
+            <div class="nav-actions">
+                {% if me %}
+                    <div class="hello">Hello,<b>{{ me }}</b></div>
+                    <a href="/scan" class="nav-link hide-sm">{{ icon('camera', 22) }}Scan</a>
+                    <a href="/cart" class="nav-link">{{ icon('cart', 22) }}Cart{% if cart_n %}<span class="badge">{{ cart_n }}</span>{% endif %}</a>
+                    <a href="/verify" class="nav-link only-sm">{{ icon('shield', 22) }}Exit</a>
+                    <a href="/admin" class="nav-link only-sm">{{ icon('chart', 22) }}Admin</a>
+                    <a href="/logout" class="nav-link">{{ icon('lock', 22) }}Logout</a>
+                {% else %}
+                    <a href="/login" class="nav-link">{{ icon('user', 22) }}Login</a>
+                    <a href="/cart" class="nav-link">{{ icon('cart', 22) }}Cart{% if cart_n %}<span class="badge">{{ cart_n }}</span>{% endif %}</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <nav class="cat-nav">
+        <div class="container">
+            <a href="/" class="{{ 'active' if request.endpoint == 'home' else '' }}">Home</a>
+            <a href="/products" class="{{ 'active' if request.endpoint == 'show_products' else '' }}">All Products</a>
+            <a href="/products?cat=Stationery">Stationery</a>
+            <a href="/products?cat=Beverages">Beverages</a>
+            <a href="/products?cat=Snacks">Snacks</a>
+            <a href="/products?cat=Groceries">Groceries</a>
+            <a href="/scan" class="{{ 'active' if request.endpoint == 'scan_page' else '' }}">Scan &amp; Go</a>
+            {% if me %}
+            <span class="nav-spacer"></span>
+            <a href="/verify" class="staff-link pill {{ 'active' if request.endpoint == 'verify_page' else '' }}">{{ icon('shield', 15) }} Exit verification</a>
+            <a href="/admin" class="staff-link pill {{ 'active' if request.endpoint == 'admin_page' else '' }}">{{ icon('chart', 15) }} Admin</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <a href="/" class="logo">
+                        <span class="logo-mark">{{ icon('cart', 22) }}</span>
+                        <span class="logo-text"><b>Scan &amp; Go</b><small>Shopping System</small></span>
+                    </a>
+                    <p class="about">A contactless in-store shopping system. Scan products as you shop, pay digitally, and walk out with a secure, single-use QR receipt that is verified at the exit.</p>
+                </div>
+                <div>
+                    <h4>Shop</h4>
+                    <ul>
+                        <li><a href="/products?cat=Stationery">Stationery</a></li>
+                        <li><a href="/products?cat=Beverages">Beverages</a></li>
+                        <li><a href="/products?cat=Snacks">Snacks</a></li>
+                        <li><a href="/products?cat=Groceries">Groceries</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>My Account</h4>
+                    <ul>
+                        {% if me %}
+                            <li><a href="/scan">Start Scanning</a></li>
+                            <li><a href="/cart">My Cart</a></li>
+                            <li><a href="/logout">Logout</a></li>
+                        {% else %}
+                            <li><a href="/login">Login</a></li>
+                            <li><a href="/signup">Create Account</a></li>
+                            <li><a href="/cart">My Cart</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div>
+                    <h4>Store Staff</h4>
+                    <ul>
+                        <li><a href="/verify">Exit Verification</a></li>
+                        <li><a href="/admin">Admin Dashboard</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 Smart Scan &amp; Go Shopping System. All rights reserved.</span>
+                <span>Project Phase II</span>
+            </div>
+        </div>
+    </footer>
+
+    <div class="qr-overlay" id="qrOverlay" onclick="closeQR()">
+        <img id="qrOverlayImg" src="" alt="QR code">
+        <b id="qrOverlayTitle"></b>
+        <p>Tap anywhere to close</p>
+    </div>
+
+    <script>
+        function openQR(src, title) {
+            document.getElementById("qrOverlayImg").src = src;
+            document.getElementById("qrOverlayTitle").innerText = title || "";
+            document.getElementById("qrOverlay").classList.add("active");
+        }
+        function closeQR() {
+            document.getElementById("qrOverlay").classList.remove("active");
+        }
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeQR(); });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

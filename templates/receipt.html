@@ -1,70 +1,82 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Receipt{% endblock %}
 
-    <div class="navbar">
-        <a href="/" class="logo">🛒 Smart Scan & Go</a>
-        <a href="/cart" class="cart-icon">🛍️ Cart</a>
-    </div>
+{% block content %}
+<div class="container page">
+{% if order_id %}
+    <div class="receipt">
+        <div class="receipt-head">
+            <div class="tick">{{ icon('check', 30) }}</div>
+            <h1>Payment Successful</h1>
+            <p>Thank you, {{ customer_name }}!</p>
+        </div>
+        <div class="receipt-body">
+            <div class="meta-row"><span>Order ID</span><b>{{ order_id }}</b></div>
 
-    <div class="page-content">
-        <div class="receipt-card">
-            <p class="status-success">✅ Payment Successful</p>
-<p style="color:#555; margin-top:-8px;">Thank you, <strong>{{ customer_name }}</strong>!</p>
-            <p>Order ID: <strong>{{ order_id }}</strong></p>
-
-            <div style="text-align:left; margin-top:16px; border-top:1px dashed #ccc; padding-top:12px;">
+            <div class="bill-lines">
                 {% for item in bill_items %}
-                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:14px;">
-                    <span>{{ item.name }} x{{ item.qty }}</span>
+                <div class="bill-line">
+                    <img src="{{ url_for('static', filename='images/' + item.image) }}" alt="{{ item.name }}" onerror="this.style.opacity=0">
+                    <span class="n">{{ item.name }}<small>x{{ item.qty }}</small></span>
                     <span>₹{{ item.subtotal }}</span>
                 </div>
                 {% endfor %}
             </div>
+            <div class="bill-total"><span>Total paid</span><span>₹{{ total }}</span></div>
 
-            <div style="border-top:1px dashed #ccc; margin-top:10px; padding-top:10px; display:flex; justify-content:space-between; font-weight:bold;">
-                <span>Total</span>
-                <span>₹{{ total }}</span>
+            <div class="qr-box">
+                <h3>Your exit QR code</h3>
+                <p class="hint">Show this at the exit gate</p>
+                <img class="qr" src="{{ url_for('static', filename='product_qr/' + qr_filename) }}" alt="Exit QR" onclick="openQR(this.src, 'Order {{ order_id }}')">
+                <div class="tap">Tap the QR to enlarge it</div>
+                <div class="exit-code">
+                    <small>Exit code (if the QR will not scan)</small>
+                    <b>{{ exit_code }}</b>
+                </div>
             </div>
 
-            <p style="margin-top:14px; color:#777; font-size:13px;">Thank you for shopping with us! 🛍️</p>
+            <div class="save-box">
+                <h3>Save your exit QR</h3>
+                <div class="save-actions">
+                    <a class="btn btn-dark" href="{{ url_for('static', filename='product_qr/' + qr_filename) }}" download="exit-qr-{{ order_id }}.png">Download QR</a>
+                    <a class="btn btn-green" target="_blank" rel="noopener"
+                       href="https://wa.me/?text={{ ('My Scan & Go exit QR (order ' ~ order_id ~ ', exit code ' ~ exit_code ~ '). Open this link at the exit gate: ' ~ share_url) | urlencode }}">Send on WhatsApp</a>
+                    <button type="button" class="btn btn-outline" id="copyLink" data-link="{{ share_url }}">Copy link</button>
+                </div>
+                <p class="save-note">This link opens your QR any time, on any phone. Keep it until you exit.</p>
+            </div>
 
-            <h3 style="margin-top:20px;">Show this QR at the exit</h3>
+            <div class="keep-note">
+                {{ icon('alert', 20) }}
+                <div>
+                    <b>Save the QR before you leave this page</b>
+                    <span>Download it, send it to yourself on WhatsApp, or note the exit code above. Staff can let you out with the code if the QR cannot be scanned.</span>
+                </div>
+            </div>
 
-<div style="background:#fff3cd; border:1.5px solid #ffc107; border-radius:10px; padding:12px 14px; margin-top:12px; text-align:left;">
-    <p style="margin:0; font-size:13px; color:#856404; font-weight:600;">
-        ⚠️ Important: Take a screenshot of this QR code now.
-    </p>
-    <p style="margin:6px 0 0 0; font-size:12.5px; color:#856404;">
-        You will need to show this at the exit gate. If you navigate away from this page, you may not be able to return to it.
-    </p>
-</div>s
-            <img src="{{ url_for('static', filename='product_qr/' + qr_filename) }}" width="200" class="qr-clickable" onclick="openQR(this.src)">
+            <a href="/" class="btn btn-outline btn-block" style="margin-top:20px;">Back to Home</a>
         </div>
-
-        <a href="/" class="btn secondary" style="margin-top:20px;">🏠 Back to Home</a>
     </div>
-
-    <div class="qr-overlay" id="qrOverlay" onclick="closeQR()">
-        <img id="qrOverlayImg" src="">
-        <p>Tap anywhere to close</p>
+{% else %}
+    <div class="panel empty" style="max-width:560px; margin:0 auto;">
+        <div class="ico">{{ icon('bag', 42) }}</div>
+        <h3>No recent order found</h3>
+        <p>Please shop first, then pay to get your exit QR.</p>
+        <a href="/scan" class="btn btn-lg">{{ icon('camera', 18) }} Start Scanning</a>
     </div>
+{% endif %}
+</div>
+{% endblock %}
 
-    <script>
-    function openQR(src) {
-        document.getElementById("qrOverlayImg").src = src;
-        document.getElementById("qrOverlay").classList.add("active");
-    }
-    function closeQR() {
-        document.getElementById("qrOverlay").classList.remove("active");
-    }
-    </script>
-
-</body>
-</html>
+{% block scripts %}
+<script>
+    var b = document.getElementById("copyLink");
+    if (b) b.addEventListener("click", function () {
+        var link = b.getAttribute("data-link");
+        function done() { b.textContent = "Link copied"; setTimeout(function () { b.textContent = "Copy link"; }, 2000); }
+        if (navigator.clipboard) { navigator.clipboard.writeText(link).then(done); }
+        else { prompt("Copy this link:", link); }
+    });
+</script>
+{% endblock %}

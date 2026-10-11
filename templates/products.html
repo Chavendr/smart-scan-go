@@ -1,54 +1,95 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Products{% endblock %}
 
-    <div class="navbar">
-        <a href="/" class="logo">🛒 Smart Scan & Go</a>
-        <a href="/cart" class="cart-icon">🛍️ Cart</a>
+{% block content %}
+<div class="container page">
+    <div class="crumbs"><a href="/">Home</a> / <span>All Products</span></div>
+    <div class="page-title">
+        <div>
+            <h1 id="listTitle">All Products</h1>
+            <p id="listCount"></p>
+        </div>
+        <a href="/scan" class="btn">{{ icon('camera', 18) }} Start Scanning</a>
     </div>
 
-    <div class="page-content">
-        <h1>Our Store</h1>
-        <p style="color:#777; margin-top:-10px;">Scan QR codes below to simulate shopping</p>
+    <div class="chips" id="chips" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px;">
+        <button class="btn btn-sm btn-dark" data-cat="">All</button>
+        {% for cat in categories.keys() %}
+        <button class="btn btn-sm btn-outline" data-cat="{{ cat }}">{{ cat }}</button>
+        {% endfor %}
+    </div>
 
-        {% for category, items in categories.items() %}
-            <h2 style="margin-top:24px; font-size:18px; color:#2c3e50; border-bottom:2px solid #ff7e2e; display:inline-block; padding-bottom:4px;">
-                {{ category }}
-            </h2>
-
-            {% for code, info in items %}
-            <div class="product-card">
-                <img src="{{ url_for('static', filename='images/' + info.image) }}" width="70" height="70" style="object-fit:cover;">
-                <div class="info" style="flex:1; margin-left:14px;">
-                    <h3>{{ info.name }}</h3>
-                    <p>₹{{ info.price }}</p>
+    <div class="product-grid" id="grid">
+        {% for cat, items in categories.items() %}
+            {% for code, p in items %}
+            <div class="pcard" data-name="{{ p.name|lower }}" data-cat="{{ cat }}">
+                <div class="pimg">
+                    <img src="{{ url_for('static', filename='images/' + p.image) }}" alt="{{ p.name }}" onerror="this.style.opacity=0">
+                    <span class="ptag">{{ cat }}</span>
                 </div>
-                <img src="{{ url_for('static', filename='product_qr/' + code + '.png') }}" width="70" class="qr-clickable" onclick="openQR(this.src)">
+                <div class="pbody">
+                    <div class="pname">{{ p.name }}</div>
+                    <div class="pcode">{{ code }}</div>
+                    <div class="pfoot">
+                        <div class="pprice"><small>₹</small>{{ p.price }}</div>
+                        <button class="btn btn-outline btn-sm" onclick="openQR('{{ url_for('static', filename='product_qr/' + code + '.png') }}', '{{ p.name }}  ·  ₹{{ p.price }}')">{{ icon('qr', 14) }} Show QR</button>
+                    </div>
+                </div>
             </div>
             {% endfor %}
         {% endfor %}
-
-        <a href="/scan" class="btn" style="margin-top:20px;">📷 Start Scanning</a>
     </div>
-<div class="qr-overlay" id="qrOverlay" onclick="closeQR()">
-    <img id="qrOverlayImg" src="">
-    <p>Tap anywhere to close</p>
-</div>
 
+    <div class="empty" id="noResults" style="display:none;">
+        <div class="ico">{{ icon('search', 40) }}</div>
+        <h3>No products found</h3>
+        <p>Try a different word or pick another category.</p>
+        <button class="btn" onclick="resetFilters()">Show all products</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
-function openQR(src) {
-    document.getElementById("qrOverlayImg").src = src;
-    document.getElementById("qrOverlay").classList.add("active");
-}
-function closeQR() {
-    document.getElementById("qrOverlay").classList.remove("active");
-}
+    var params = new URLSearchParams(window.location.search);
+    var activeCat = params.get("cat") || "";
+    var query = (params.get("q") || "").toLowerCase();
+    var searchBox = document.getElementById("siteSearch");
+    searchBox.value = params.get("q") || "";
+
+    function applyFilters() {
+        var cards = document.querySelectorAll("#grid .pcard");
+        var shown = 0;
+        cards.forEach(function (c) {
+            var okCat = !activeCat || c.dataset.cat === activeCat;
+            var okQ = !query || c.dataset.name.indexOf(query) !== -1;
+            var ok = okCat && okQ;
+            c.style.display = ok ? "" : "none";
+            if (ok) shown++;
+        });
+        document.querySelectorAll("#chips button").forEach(function (b) {
+            var on = b.dataset.cat === activeCat;
+            b.className = "btn btn-sm " + (on ? "btn-dark" : "btn-outline");
+        });
+        document.getElementById("listTitle").innerText = activeCat || "All Products";
+        document.getElementById("listCount").innerText = shown + " item" + (shown === 1 ? "" : "s") + (query ? ' matching "' + query + '"' : "");
+        document.getElementById("noResults").style.display = shown ? "none" : "block";
+    }
+
+    function resetFilters() {
+        activeCat = ""; query = ""; searchBox.value = "";
+        applyFilters();
+    }
+
+    document.querySelectorAll("#chips button").forEach(function (b) {
+        b.addEventListener("click", function () { activeCat = b.dataset.cat; applyFilters(); });
+    });
+
+    // live search while typing on this page (Enter just keeps you here)
+    searchBox.addEventListener("input", function () { query = searchBox.value.trim().toLowerCase(); applyFilters(); });
+    searchBox.form.addEventListener("submit", function (e) { e.preventDefault(); });
+
+    applyFilters();
 </script>
-</body>
-</html>
+{% endblock %}

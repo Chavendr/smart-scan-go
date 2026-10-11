@@ -1,71 +1,178 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Scan and Go</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Home{% endblock %}
 
-    <div class="navbar">
-        <a href="/" class="logo">Smart Scan & Go</a>
-        {% if session.get('user_name') %}
-            <a href="/logout" class="cart-icon">Logout</a>
-        {% else %}
-            <a href="/login" class="cart-icon">Login</a>
-        {% endif %}
-    </div>
+{% block content %}
+{% set plist = products.values()|list %}
 
-    <div class="hero">
-        <div class="tag">FreshMart Express</div>
-        {% if session.get('user_name') %}
-            <h1>Hi, {{ session.get('user_name') }}!</h1>
-            <p>Ready to shop? Scan, pay and walk out.</p>
-        {% else %}
-            <h1>Scan. Pay. Walk out.</h1>
-            <p>Please log in to start shopping.</p>
-        {% endif %}
-    </div>
+<section class="hero-slider" id="heroSlider">
 
-    <div class="page-content">
-
-        {% if session.get('user_name') %}
-        <div class="menu-list">
-            <a href="/products" class="menu-item">
-                <span class="icon-box" style="background:#eef2ff; color:#4f46e5;">📋</span>
-                Browse Products
-                <span class="arrow">›</span>
-            </a>
-            <a href="/scan" class="menu-item">
-                <span class="icon-box" style="background:#fff3ea; color:#ff7e2e;">📷</span>
-                Start Scanning
-                <span class="arrow">›</span>
-            </a>
-            <a href="/cart" class="menu-item">
-                <span class="icon-box" style="background:#e9f9ef; color:#27ae60;">🛍️</span>
-                My Cart
-                <span class="arrow">›</span>
-            </a>
-            <a href="/verify" class="menu-item">
-                <span class="icon-box" style="background:#fdeeee; color:#e74c3c;">🔐</span>
-                Staff: Exit Verification
-                <span class="arrow">›</span>
-            </a>
-            <a href="/admin" class="menu-item">
-                <span class="icon-box" style="background:#f0f0f0; color:#555;">📊</span>
-                Admin Dashboard
-                <span class="arrow">›</span>
-            </a>
+    <div class="slide slide-1 active">
+        <div class="container slide-inner">
+            <div>
+                <span class="eyebrow">Smart Scan &amp; Go</span>
+                <h1>Scan. Pay.<br>Walk out.</h1>
+                <p class="lead">Skip the checkout line. Scan items as you shop, pay in seconds and leave with a secure QR receipt.</p>
+                <div class="cta">
+                    {% if session.get('user_id') %}
+                        <a href="/scan" class="btn btn-lg">{{ icon('camera', 18) }} Start Scanning</a>
+                    {% else %}
+                        <a href="/signup" class="btn btn-lg">Create free account</a>
+                    {% endif %}
+                    <a href="/products" class="btn btn-light btn-lg">Browse products</a>
+                </div>
+            </div>
+            <div class="collage">
+                {% for p in plist[0:4] %}<img src="{{ url_for('static', filename='images/' + p.image) }}" alt="{{ p.name }}" onerror="this.style.opacity=0">{% endfor %}
+            </div>
         </div>
-        {% else %}
-            <a href="/login" class="btn">Log In</a>
-            <a href="/signup" class="btn green">Create an Account</a>
-        {% endif %}
-
     </div>
 
-    <div class="footer">SMART SCAN & GO · v1.0 · 2026</div>
+    <div class="slide slide-2">
+        <div class="container slide-inner">
+            <div>
+                <span class="eyebrow">No queues</span>
+                <h1>Your phone is<br>the checkout.</h1>
+                <p class="lead">Point your camera at the QR on any shelf item and it lands straight in your cart. No counters, no waiting.</p>
+                <div class="cta">
+                    <a href="/scan" class="btn btn-lg">{{ icon('camera', 18) }} Try Scan &amp; Go</a>
+                    <a href="/products?cat=Snacks" class="btn btn-light btn-lg">Shop snacks</a>
+                </div>
+            </div>
+            <div class="collage">
+                {% for p in plist[4:8] %}<img src="{{ url_for('static', filename='images/' + p.image) }}" alt="{{ p.name }}" onerror="this.style.opacity=0">{% endfor %}
+            </div>
+        </div>
+    </div>
 
-</body>
-</html>
+    <div class="slide slide-3">
+        <div class="container slide-inner">
+            <div>
+                <span class="eyebrow">Secure by design</span>
+                <h1>Every receipt is<br>digitally signed.</h1>
+                <p class="lead">Your exit QR is tamper-proof and works only once, so every order is checked before you walk out.</p>
+                <div class="cta">
+                    <a href="/signup" class="btn btn-lg">Get started</a>
+                    <a href="/products" class="btn btn-light btn-lg">See what's in store</a>
+                </div>
+            </div>
+            <div class="collage">
+                {% for p in plist[6:10] %}<img src="{{ url_for('static', filename='images/' + p.image) }}" alt="{{ p.name }}" onerror="this.style.opacity=0">{% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="dots" id="heroDots">
+        <button class="active" aria-label="Slide 1"></button>
+        <button aria-label="Slide 2"></button>
+        <button aria-label="Slide 3"></button>
+    </div>
+</section>
+
+<section class="trust">
+    <div class="container trust-grid">
+        <div class="trust-item"><div class="trust-ico">{{ icon('camera', 22) }}</div><div><b>Scan as you shop</b><span>Camera reads any shelf QR</span></div></div>
+        <div class="trust-item"><div class="trust-ico">{{ icon('card', 22) }}</div><div><b>Instant payment</b><span>Pay on your phone</span></div></div>
+        <div class="trust-item"><div class="trust-ico">{{ icon('shield', 22) }}</div><div><b>Secure exit QR</b><span>Signed and single-use</span></div></div>
+        <div class="trust-item"><div class="trust-ico">{{ icon('chart', 22) }}</div><div><b>Live order tracking</b><span>Staff see every order</span></div></div>
+    </div>
+</section>
+
+<div class="container">
+
+    <section class="section">
+        <div class="section-head">
+            <div>
+                <h2>Shop by category</h2>
+                <p>Everything you need, one aisle at a time</p>
+            </div>
+            <a href="/products" class="link-more">View all {{ icon('arrow-right', 16) }}</a>
+        </div>
+        <div class="cat-grid">
+            {% for cat, items in categories.items() %}
+            <a href="/products?cat={{ cat }}" class="cat-card">
+                <img src="{{ url_for('static', filename='images/' + items[0][1].image) }}" alt="{{ cat }}" onerror="this.style.opacity=0">
+                <div class="shade"></div>
+                <div class="label"><b>{{ cat }}</b><span>{{ items|length }} product{{ 's' if items|length != 1 }} {{ icon('arrow-right', 14) }}</span></div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-head">
+            <div>
+                <h2>Popular right now</h2>
+                <p>Scan the QR on any item to add it to your cart</p>
+            </div>
+            <a href="/products" class="link-more">See all products {{ icon('arrow-right', 16) }}</a>
+        </div>
+        <div class="product-grid">
+            {% for code, p in products.items() %}{% if loop.index <= 10 %}
+            <div class="pcard">
+                <div class="pimg">
+                    <img src="{{ url_for('static', filename='images/' + p.image) }}" alt="{{ p.name }}" onerror="this.style.opacity=0">
+                    <span class="ptag">{{ p.category }}</span>
+                </div>
+                <div class="pbody">
+                    <div class="pname">{{ p.name }}</div>
+                    <div class="pcode">{{ code }}</div>
+                    <div class="pfoot">
+                        <div class="pprice"><small>₹</small>{{ p.price }}</div>
+                        <button class="btn btn-outline btn-sm" onclick="openQR('{{ url_for('static', filename='product_qr/' + code + '.png') }}', '{{ p.name }}  ·  ₹{{ p.price }}')">{{ icon('qr', 14) }} Show QR</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}{% endfor %}
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-head">
+            <div>
+                <h2>How it works</h2>
+                <p>Four simple steps from shelf to exit</p>
+            </div>
+        </div>
+        <div class="steps">
+            <div class="step"><div class="num">1</div><h3>Scan</h3><p>Open Scan &amp; Go and point your camera at the QR code on a product.</p></div>
+            <div class="step"><div class="num">2</div><h3>Add to cart</h3><p>The item is added instantly. Remove anything you change your mind about.</p></div>
+            <div class="step"><div class="num">3</div><h3>Pay</h3><p>Check your total and pay on your phone. No cashier needed.</p></div>
+            <div class="step"><div class="num">4</div><h3>Show exit QR</h3><p>Show your signed receipt QR at the gate. Staff verify it and you walk out.</p></div>
+        </div>
+    </section>
+
+    <section class="promo">
+        <div>
+            <h2>Ready to skip the queue?</h2>
+            <p>Create a free account and start scanning your first items in under a minute.</p>
+        </div>
+        {% if session.get('user_id') %}
+            <a href="/scan" class="btn btn-lg">{{ icon('camera', 18) }} Start Scanning</a>
+        {% else %}
+            <a href="/signup" class="btn btn-lg">Create free account</a>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var slides = document.querySelectorAll("#heroSlider .slide");
+        var dots = document.querySelectorAll("#heroDots button");
+        var current = 0, timer;
+        function show(n) {
+            current = (n + slides.length) % slides.length;
+            slides.forEach(function (s, i) { s.classList.toggle("active", i === current); });
+            dots.forEach(function (d, i) { d.classList.toggle("active", i === current); });
+        }
+        function start() { timer = setInterval(function () { show(current + 1); }, 5500); }
+        dots.forEach(function (d, i) {
+            d.addEventListener("click", function () { clearInterval(timer); show(i); start(); });
+        });
+        start();
+    })();
+</script>
+{% endblock %}

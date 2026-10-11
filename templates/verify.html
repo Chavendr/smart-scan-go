@@ -1,77 +1,122 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Exit Verification</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-    <script src="https://unpkg.com/html5-qrcode"></script>
-</head>
-<body>
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Exit Verification{% endblock %}
 
-    <div class="navbar">
-        <a href="/" class="logo">Smart Scan & Go</a>
-        <a href="/" class="cart-icon">Home</a>
+{% block head %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container page">
+    <div class="crumbs"><a href="/">Home</a> / <span>Exit Verification</span></div>
+    <div class="page-title">
+        <div>
+            <h1>Exit gate</h1>
+            <p>Scan the customer's receipt QR to verify the order</p>
+        </div>
+        <a href="/" class="btn btn-outline">{{ icon('arrow-left', 16) }} Back to Home</a>
     </div>
 
-    <div class="page-content">
-        <a href="/" class="back-btn">⬅ Back to Home</a>
-        <h1>🔐 Exit Gate — Scan Receipt</h1>
-        <div id="reader" style="width: 100%;"></div>
-        <p id="result" style="font-size: 16px; font-weight: 700; margin-top: 16px;">Waiting to scan...</p>
+    <div class="scan-grid">
+        <div class="panel">
+            <div id="reader" style="width: 100%;"></div>
+            <div class="scan-result" id="result">Waiting to scan...</div>
+        </div>
 
-        <div id="itemsBox" style="display:none; background:white; border-radius:12px; padding:16px; margin-top:10px; text-align:left; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-            <p style="font-weight:700; margin:0 0 8px 0;">Order: <span id="orderIdText"></span></p>
-            <ul id="itemsList" style="margin:0; padding-left:18px; font-size:14px;"></ul>
-            <p style="font-weight:700; margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">Total: ₹<span id="totalText"></span></p>
+        <div>
+            <div class="panel">
+                <h3>Staff checklist</h3>
+                <ul class="tips">
+                    <li><span class="n">1</span><div>Scan the receipt QR shown by the customer.</div></li>
+                    <li><span class="n">2</span><div>Green means the order is genuine and unused. Allow exit.</div></li>
+                    <li><span class="n">3</span><div>Compare the item list below with the customer's bag.</div></li>
+                    <li><span class="n">4</span><div>Orange means a random check. Ask to see the bag contents.</div></li>
+                </ul>
+            </div>
+
+
+            <div class="panel" style="margin-top:20px;">
+                <h3>Manual entry</h3>
+                <p style="color:var(--muted); font-size:14px; margin:4px 0 14px;">Staff only. Use this when the QR cannot be scanned. Type the exit code printed under the customer's QR and the admin password.</p>
+<form id="manualForm" class="manual-form">
+                    <label for="manualCode">Exit code</label>
+                    <input type="text" id="manualCode" placeholder="e.g. A1B2-C3D4" autocomplete="off" maxlength="12" required>
+                    <label for="manualPass">Admin password</label>
+                    <input type="password" id="manualPass" class="plain" placeholder="Admin password" autocomplete="off" required>
+                    <button type="submit" class="btn btn-dark btn-block">Verify code</button>
+                    <p class="unlocked">{{ icon('lock', 14) }} Locks again automatically after every entry.</p>
+                </form>
+            </div>
+
+            <div class="items-box" id="itemsBox">
+                <b>Order <span id="orderIdText"></span></b>
+                <ul id="itemsList"></ul>
+                <div class="tot">Total: ₹<span id="totalText"></span></div>
+            </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        let checking = false;
+{% block scripts %}
+<script>
+    let checking = false;
 
-        function onScanSuccess(decodedText, decodedResult) {
-            if (checking) return;
-            checking = true;
-
-            document.getElementById("result").innerText = "Checking...";
-
-            fetch("/check_order", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: decodedText })
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("result").innerText = data.message;
-
-                if (!data.valid) {
-                    document.getElementById("result").style.color = "#e74c3c";
-                    document.getElementById("itemsBox").style.display = "none";
-                } else {
-                    document.getElementById("result").style.color = data.flagged ? "#e67e22" : "#27ae60";
-
-                    document.getElementById("orderIdText").innerText = data.order_id;
-                    document.getElementById("totalText").innerText = data.total;
-
-                    let list = document.getElementById("itemsList");
-                    list.innerHTML = "";
-                    data.items.forEach(function(item) {
-                        let li = document.createElement("li");
-                        li.innerText = item;
-                        list.appendChild(li);
-                    });
-
-                    document.getElementById("itemsBox").style.display = "block";
-                }
-
-                setTimeout(() => { checking = false; }, 2000);
-            });
+    function showResult(data) {
+        var res = document.getElementById("result");
+        res.innerText = data.message;
+        if (!data.valid) {
+            res.style.color = "#e74c3c";
+            document.getElementById("itemsBox").style.display = "none";
+            return;
         }
+        res.style.color = data.flagged ? "#e67e22" : "#27ae60";
+        document.getElementById("orderIdText").innerText = data.order_id;
+        document.getElementById("totalText").innerText = data.total;
+        var list = document.getElementById("itemsList");
+        list.innerHTML = "";
+        data.items.forEach(function (item) {
+            var li = document.createElement("li");
+            li.innerText = item;
+            list.appendChild(li);
+        });
+        document.getElementById("itemsBox").style.display = "block";
+    }
 
-        var html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", { fps: 10, qrbox: 250 }
-        );
-        html5QrcodeScanner.render(onScanSuccess);
-    </script>
-</body>
-</html>
+    function send(url, code, password) {
+        document.getElementById("result").style.color = "";
+        document.getElementById("result").innerText = "Checking...";
+        return fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: code, password: password || "" })
+        }).then(function (r) {
+            return r.json().catch(function () {
+                return { valid: false, message: "❌ Server error (" + r.status + "). Make sure the newest app.py is saved and the server was restarted." };
+            });
+        }).then(showResult).catch(function () {
+            showResult({ valid: false, message: "❌ Could not reach the server. Check your internet and try again." });
+        });
+    }
+
+    function onScanSuccess(decodedText) {
+        if (checking) return;
+        checking = true;
+        send("/check_order", decodedText).then(function () {
+            setTimeout(function () { checking = false; }, 2000);
+        });
+    }
+
+    var form = document.getElementById("manualForm");
+    if (form) form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        send("/manual_verify", document.getElementById("manualCode").value, document.getElementById("manualPass").value).then(function () {
+            document.getElementById("manualPass").value = "";
+            document.getElementById("manualCode").value = "";
+        });
+    });
+
+    var html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess);
+</script>
+{% endblock %}

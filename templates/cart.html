@@ -1,42 +1,51 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Your Cart</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}My Cart{% endblock %}
 
-    <div class="navbar">
-        <a href="/" class="logo">Smart Scan & Go</a>
-        <a href="/cart" class="cart-icon">Cart</a>
+{% block content %}
+<div class="container page">
+    <div class="crumbs"><a href="/">Home</a> / <span>My Cart</span></div>
+    <div class="page-title">
+        <div>
+            <h1>My Cart</h1>
+            {% if cart_items %}<p>{{ cart_items|length }} item{{ 's' if cart_items|length != 1 }} ready for checkout</p>{% endif %}
+        </div>
+        <a href="/scan" class="btn btn-outline">{{ icon('arrow-left', 16) }} Back to Scan</a>
     </div>
 
-    <div class="page-content">
-        <a href="/scan" class="back-btn">⬅ Back to Scan</a>
-        <h1>🛍️ Your Cart</h1>
-
-        {% if cart_items %}
+    {% if cart_items %}
+    <div class="two-col">
+        <div class="panel">
             {% for item in cart_items %}
-            <div class="cart-item">
-                <span>{{ item.name }} — ₹{{ item.price }}</span>
-                <a href="/remove_from_cart/{{ loop.index0 }}" style="color:#e74c3c; text-decoration:none; font-weight:600; font-size:13px; border:1px solid #e74c3c; padding:5px 10px; border-radius:8px;">✕ Remove</a>
+            <div class="line-item">
+                <img class="thumb" src="{{ url_for('static', filename='images/' + item.image) }}" alt="{{ item.name }}" onerror="this.style.opacity=0">
+                <div class="meta">
+                    <b>{{ item.name }}</b>
+                    <span>{{ item.category }}</span>
+                </div>
+                <div class="price">₹{{ item.price }}</div>
+                <a href="/remove_from_cart/{{ loop.index0 }}" class="remove">{{ icon('x', 14) }} Remove</a>
             </div>
             {% endfor %}
+        </div>
 
-            <div class="total-box">Total: ₹{{ total }}</div>
-
-            <a href="/payment" class="btn green">💳 Proceed to Pay</a>
-            <a href="/scan" class="btn secondary">📷 Scan More Items</a>
-        {% else %}
-            <div class="empty-state">
-                <div class="icon">🛒</div>
-                <h3>Your cart is empty</h3>
-                <p>Start scanning products to add them here</p>
-                <a href="/scan" class="btn">📷 Go Scan Something</a>
-            </div>
-        {% endif %}
+        <div class="panel summary">
+            <h3>Order summary</h3>
+            <div class="sum-row"><span>Items ({{ cart_items|length }})</span><span>₹{{ total }}</span></div>
+            <div class="sum-row"><span>Payment</span><span>Pay on phone</span></div>
+            <div class="sum-row total"><span>Total</span><span>₹{{ total }}</span></div>
+            <a href="/payment" class="btn btn-green btn-block btn-lg" style="margin-top:18px;">{{ icon('card', 18) }} Proceed to Pay</a>
+            <a href="/scan" class="btn btn-outline btn-block" style="margin-top:10px;">{{ icon('camera', 16) }} Scan more items</a>
+            <div class="secure-note">{{ icon('shield', 15) }} Secure checkout with signed QR receipt</div>
+        </div>
     </div>
-
-</body>
-</html>
+    {% else %}
+    <div class="panel empty">
+        <div class="ico">{{ icon('cart', 42) }}</div>
+        <h3>Your cart is empty</h3>
+        <p>Start scanning products to add them here.</p>
+        <a href="/scan" class="btn btn-lg">{{ icon('camera', 18) }} Go Scan Something</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
