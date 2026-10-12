@@ -72,6 +72,9 @@
             var on = b.dataset.cat === activeCat;
             b.className = "btn btn-sm " + (on ? "btn-dark" : "btn-outline");
         });
+        document.querySelectorAll(".cat-nav a[data-nav-cat]").forEach(function (a) {
+            a.classList.toggle("active", a.dataset.navCat === activeCat);
+        });
         document.getElementById("listTitle").innerText = activeCat || "All Products";
         document.getElementById("listCount").innerText = shown + " item" + (shown === 1 ? "" : "s") + (query ? ' matching "' + query + '"' : "");
         document.getElementById("noResults").style.display = shown ? "none" : "block";

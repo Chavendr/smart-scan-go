@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='store.css') }}?v=exit5">
+    <link rel="stylesheet" href="{{ url_for('static', filename='store.css') }}?v=nav6">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     {% block head %}{% endblock %}
 </head>
@@ -51,11 +51,11 @@
     <nav class="cat-nav">
         <div class="container">
             <a href="/" class="{{ 'active' if request.endpoint == 'home' else '' }}">Home</a>
-            <a href="/products" class="{{ 'active' if request.endpoint == 'show_products' else '' }}">All Products</a>
-            <a href="/products?cat=Stationery">Stationery</a>
-            <a href="/products?cat=Beverages">Beverages</a>
-            <a href="/products?cat=Snacks">Snacks</a>
-            <a href="/products?cat=Groceries">Groceries</a>
+            <a href="/products" data-nav-cat="" class="{{ 'active' if request.endpoint == 'show_products' and not request.args.get('cat') else '' }}">All Products</a>
+            <a href="/products?cat=Stationery" data-nav-cat="Stationery" class="{{ 'active' if request.endpoint == 'show_products' and request.args.get('cat') == 'Stationery' else '' }}">Stationery</a>
+            <a href="/products?cat=Beverages" data-nav-cat="Beverages" class="{{ 'active' if request.endpoint == 'show_products' and request.args.get('cat') == 'Beverages' else '' }}">Beverages</a>
+            <a href="/products?cat=Snacks" data-nav-cat="Snacks" class="{{ 'active' if request.endpoint == 'show_products' and request.args.get('cat') == 'Snacks' else '' }}">Snacks</a>
+            <a href="/products?cat=Groceries" data-nav-cat="Groceries" class="{{ 'active' if request.endpoint == 'show_products' and request.args.get('cat') == 'Groceries' else '' }}">Groceries</a>
             <a href="/scan" class="{{ 'active' if request.endpoint == 'scan_page' else '' }}">Scan &amp; Go</a>
             {% if me %}
             <span class="nav-spacer"></span>
